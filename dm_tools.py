@@ -11,10 +11,10 @@ def data_prep():
 
     # Month is categorical, so convert to string for one-hot encoding
     # Reasoning: the most appropriate grouping of data;
-    # day has no meaning without month
-    # weeks has no meaning without year, but we have no year
-    # weekends and weekdays values depend on week for context
-    # month could also provide seasonal context, hence a better model
+    #   day has no meaning without month
+    #   weeks has no meaning without year, but we have no year
+    #   weekends and weekdays values depend on week for context
+    #   month could also provide seasonal context, hence a better model
     df["arrival_date_month"] = df["arrival_date_month"].astype(str)
 
     # is_canceled is a two-valued categorical (Y/N), so it should be binary
@@ -54,7 +54,7 @@ def data_prep():
     df.drop(columns=columns_to_remove)
 
     # one-hot encode categoricals
-    # Applies to country, and reserved_room_type
+    # Applies to country, reserved_room_type, and arrival_date_month
     df = pd.get_dummies(df)
 
     return df
