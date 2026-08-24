@@ -51,7 +51,7 @@ def data_prep():
         "total_guests"
     ]
 
-    df.drop(columns=columns_to_remove)
+    df = df.drop(columns=columns_to_remove)
 
     # one-hot encode categoricals
     # Applies to country, reserved_room_type, and arrival_date_month
