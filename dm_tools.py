@@ -59,3 +59,7 @@ def data_prep():
     df.to_csv("data/clean_data.csv", index=False)
 
     return df
+
+if __name__ == "__main__":
+    data_prep()
+    print("Cleaned data saved to data/clean_data.csv")
