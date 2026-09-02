@@ -23,11 +23,15 @@ The project includes:
 CAB330_Assignment1/
 │
 ├── data/
+│   ├── hotel-booking.csv
 │   ├── clean_data.csv
 │   ├── clean_group_data.csv
 │   ├── clean_test_A.csv
 │   ├── clean_test_B.csv
 │   └── clean_test_C.csv
+│
+├── dm_tools.py
+├── data_partition.ipynb
 │
 ├── models/
 │   └── Model-related code
@@ -36,17 +40,34 @@ CAB330_Assignment1/
 │   └── Model evaluation and plotting functions
 │
 ├── notebooks/
-│   └── Jupyter notebooks for EDA, preprocessing and modelling
+│   └── EDA and modelling notebooks
 │
 ├── requirements.txt
 └── README.md
 ```
 
+### `dm_tools.py`
+
+Contains the shared data preprocessing function. The preprocessing function loads the raw hotel booking dataset, applies the agreed cleaning and encoding steps, and saves the resulting dataset as:
+
+```text
+data/clean_data.csv
+```
+
+This keeps the final preprocessing implementation separate from the EDA notebook and ensures that the same cleaned dataset is used by all group members.
+
+### `data_partition.ipynb`
+
+Uses the supplied data partitioning procedure to read `clean_data.csv` and generate the common group dataset and three individual test datasets.
+
+The fixed random states and stratification used by the supplied partitioning procedure ensure that the same partitions can be reproduced from the same `clean_data.csv`.
+
 ### `data/`
 
-Contains the cleaned and partitioned datasets used throughout the project.
+Contains the raw, cleaned and partitioned datasets used throughout the project.
 
-- `clean_data.csv` – Preprocessed hotel booking dataset
+- `hotel-booking.csv` – Original dataset
+- `clean_data.csv` – Dataset produced by the shared preprocessing function
 - `clean_group_data.csv` – Dataset used by the group for Tasks 2–4
 - `clean_test_A.csv` – Individual test dataset for Student A
 - `clean_test_B.csv` – Individual test dataset for Student B
@@ -77,7 +98,7 @@ Contains reusable functions for evaluating model performance, such as:
 
 ### `notebooks/`
 
-Contains the Jupyter notebooks used to perform the analysis, preprocessing, model development and evaluation.
+Contains notebooks used for exploratory data analysis and model development. The EDA notebook is used to investigate the data and justify preprocessing decisions, while the actual shared preprocessing implementation is contained in `dm_tools.py`.
 
 ---
 
@@ -93,9 +114,10 @@ The preprocessing workflow includes:
 4. Identifying invalid or suspicious values
 5. Investigating redundant variables
 6. Selecting appropriate preprocessing methods
-7. Cleaning the dataset
-8. Validating the cleaned dataset
-9. Partitioning the data for group and individual modelling
+7. Applying the agreed preprocessing using `dm_tools.py`
+8. Saving the cleaned dataset as `clean_data.csv`
+9. Running the supplied partitioning procedure
+10. Checking the size and target distribution of the generated datasets
 
 ## Target Variable
 
@@ -105,11 +127,18 @@ The target variable is:
 is_canceled
 ```
 
-where:
+The original dataset represents the target as:
 
 ```text
 Y = Booking cancelled
 N = Booking not cancelled
+```
+
+During preprocessing, the binary target is encoded as:
+
+```text
+1 = Booking cancelled
+0 = Booking not cancelled
 ```
 
 ---
@@ -117,6 +146,10 @@ N = Booking not cancelled
 ## Data Quality and Preprocessing
 
 Several data-quality issues were identified during EDA.
+
+### Arrival Month
+
+`arrival_date_month` is treated as a categorical variable rather than a continuous numeric variable. This allows month to represent seasonal booking information without implying a continuous numerical relationship between month numbers.
 
 ### Lead Time
 
@@ -171,7 +204,7 @@ category.
 
 ### ADR
 
-Missing `adr` values were replaced using the **median ADR**.
+Invalid ADR values below 1 are treated as missing values. Missing ADR values are then replaced using the **median ADR**.
 
 Median imputation was selected because it is less sensitive to unusually high values than the mean.
 
@@ -212,17 +245,21 @@ adults + children + babies
 
 The individual guest variables were retained because they provide more information about the composition of each booking.
 
+### Categorical Encoding
+
+Categorical predictor variables are one-hot encoded during shared preprocessing. This includes variables such as `country`, `reserved_room_type`, and the categorical representation of `arrival_date_month`.
+
 ---
 
 # Data Partitioning
 
-After preprocessing, the cleaned dataset is saved as:
+After preprocessing, `dm_tools.py` saves the cleaned dataset as:
 
 ```text
 clean_data.csv
 ```
 
-The supplied data partitioning procedure is then used to generate:
+The supplied `data_partition.ipynb` is then used to generate:
 
 ```text
 clean_group_data.csv
@@ -231,11 +268,13 @@ clean_test_B.csv
 clean_test_C.csv
 ```
 
+Approximately 91% of the cleaned data is allocated to the group dataset, while approximately 3% is allocated to each individual test dataset. Stratification is used to maintain a similar target distribution across the generated datasets.
+
 The group dataset is used for model development and comparison in **Tasks 2–4**.
 
 The individual datasets are reserved for the individual model evaluation performed in **Task 5**.
 
-The group dataset is further divided into training and test sets for model development.
+For model development, each model can further divide `clean_group_data.csv` into training and test sets using the agreed split settings.
 
 ---
 
@@ -321,6 +360,35 @@ Training and test performance are also compared to identify possible overfitting
 
 ---
 
+# Data Workflow
+
+The shared data workflow is:
+
+```text
+hotel-booking.csv
+        │
+        ▼
+dm_tools.py / data_prep()
+        │
+        ▼
+clean_data.csv
+        │
+        ▼
+data_partition.ipynb
+        │
+        ├── clean_group_data.csv
+        ├── clean_test_A.csv
+        ├── clean_test_B.csv
+        └── clean_test_C.csv
+                 │
+                 ▼
+          Model development
+```
+
+The EDA notebook is used to investigate the dataset and document the reasoning behind preprocessing decisions. Dataset generation and partitioning are kept separate so all group members can work from the same prepared datasets.
+
+---
+
 # Installation
 
 Clone the repository:
@@ -345,15 +413,11 @@ pip install -r requirements.txt
 
 # Running the Project
 
-Start Jupyter Notebook:
+Run the shared preprocessing function to generate `clean_data.csv`, then run `data_partition.ipynb` to generate the group and individual datasets.
 
-```bash
-jupyter notebook
-```
+Model notebooks should load `clean_group_data.csv` for Tasks 2–4. The individual A/B/C datasets should remain reserved for Task 5.
 
-Open the relevant notebook from the `notebooks/` directory and run the cells in order.
-
-The notebooks should be run from the project root so that relative paths such as:
+The project should be run from the repository root so relative paths such as:
 
 ```python
 pd.read_csv("data/clean_group_data.csv")
@@ -382,7 +446,3 @@ Additional libraries may be included depending on the implementation of the neur
 # Repository
 
 CAB330 Assignment 1 Group Project
-
-GitHub Repository:
-
-https://github.com/Matsuzaki-Yuta/CAB330_Assignment1
