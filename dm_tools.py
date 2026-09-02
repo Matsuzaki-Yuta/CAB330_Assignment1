@@ -56,5 +56,6 @@ def data_prep():
     # one-hot encode categoricals
     # Applies to country, reserved_room_type, and arrival_date_month
     df = pd.get_dummies(df)
+    df.to_csv("data/clean_data.csv", index=False)
 
     return df
