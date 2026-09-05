@@ -126,4 +126,4 @@ def plot_roc_comparison(model1, model2, X_test, y_test, model1_name="Model 1", m
 
 #### Evaluation functions for regression model ####
 
-#### Evaluation functions for CNN ####
+#### Evaluation functions for NN ####
